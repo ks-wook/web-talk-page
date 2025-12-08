@@ -31,12 +31,9 @@ interface ChatLayoutProps {
 }
 
 function getCookie(name: string): string | undefined {
-  return '';  
-  /*
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop()?.split(";").shift();
-  */
 }
 
 export function ChatLayout({
@@ -48,7 +45,7 @@ export function ChatLayout({
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
 
-  const me = useRef<string>(null);
+  const myNickname = useRef<string | undefined>(undefined);
 
   const [client, setClient] = React.useState<Client | null>(null);
 
@@ -57,32 +54,36 @@ export function ChatLayout({
   );
 
   const useMountEffect = () => {
-    const authCookie = getCookie("auth");
+    const authCookie = getCookie("onlineOpenChatAuth");
 
-    /*
-    if (!authCookie) {
-      redirect("/login");
-      return;
-    }
-    */
-
+    
+    /**
+     * 현재 유저 닉네임 세팅
+     */
     const verifyAuthToken = async () => {
-      const result = await api.get(`/api/v1/auth/verify-token/${authCookie}`);
-      me.current = result.data;
+      const result = await api.get(`/api/v1/auth/verify-token/${authCookie}`, {
+        headers: {
+          Authorization: `Bearer ${authCookie}`,
+        },
+        withCredentials: true
+      });
+      myNickname.current = result.data;
     };
 
     verifyAuthToken();
 
     if (client === null) {
+      console.log('[setSocket] 채팅 서버 접속 기록이 없습니다. 웹소켓 접속을 시도합니다.');
+
       const setSocket = async () => {
         const C = new StompJs.Client({
-          brokerURL: "ws://localhost:7002/ws-stomp",
+          brokerURL: "ws://localhost:7002/ws-stomp" + `?token=` + authCookie,
           connectHeaders: {
             Authorization: `Bearer ${authCookie}`,
           },
           reconnectDelay: 5000,
           onConnect: () => {
-            console.log("connected");
+            console.log("채팅 서버 접속 완료...");
             subscribe(C); // Pass the client instance
           },
           onWebSocketError: (error) => {
@@ -94,6 +95,8 @@ export function ChatLayout({
           },
         });
 
+        console.log('[세팅된 소켓] : ', C);
+
         setClient(C); // WebSocket 클라이언트를 저장
         C.activate();
       };
@@ -104,8 +107,12 @@ export function ChatLayout({
 
   useMountEffect();
 
+  /**
+   * 웹소켓 채널 구독
+   * @param clientInstance 
+   */
   const subscribe = (clientInstance: StompJs.Client) => {
-    console.log("Subscribing...");
+    console.log("웹소켓 구독 요청...");
     clientInstance.subscribe(
       `/sub/chat`,
       (received_message: StompJs.IFrame) => {
@@ -157,7 +164,7 @@ export function ChatLayout({
         )}
       >
         <Sidebar
-          me={me}
+          me={myNickname}
           isCollapsed={isCollapsed}
           links={connectedUsers}
           setConnectedUsers={setConnectedUsers}
@@ -173,7 +180,7 @@ export function ChatLayout({
           <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
             <Chat
               messagesState={messagesState}
-              me={me}
+              me={myNickname}
               client={client}
               selectedUser={selectedUser}
               setSelectedUser={setSelectedUser}

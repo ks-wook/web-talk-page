@@ -53,17 +53,21 @@ const getCookie = (name: string): string | null => {
 };
 
 export const fetchUsers = async (searchQuery: string): Promise<User[]> => {
-  const token = getCookie("auth");
+  const token = getCookie("onlineOpenChatAuth");
 
   if (!token) {
     throw new Error("Authentication token not found in cookies");
   }
 
+  // 유저 검색 요청
   const response = await api.get(`/api/v1/user/search/${searchQuery}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+    withCredentials: true
   });
+
+  console.log('[유저 검색 요청 결과] : ', response);
 
   const names = response.data.name;
 
@@ -121,11 +125,18 @@ export function Sidebar({
   };
 
   const handleChangeChat = async (link: User) => {
+    const token = getCookie('onlineOpenChatAuth');
+
+    // TODO : redis를 통해 채팅 로그를 불러들어야함
     const result = await api.get("/api/v1/chat/chat-list", {
       params: {
         name: link.name,
         from: me.current,
       },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      withCredentials: true
     });
 
     setMessages(result.data.result);

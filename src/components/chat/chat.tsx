@@ -21,6 +21,7 @@ export function Chat({
 }: ChatProps) {
   // selectedUser가 null인 경우, 빈 배열로 초기화
 
+  // 채팅 보내기
   const sendMessage = (newMessage: Message) => {
     if (client) {
       client.publish({

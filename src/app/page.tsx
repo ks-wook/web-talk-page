@@ -14,7 +14,7 @@ export default function Home() {
   const authCookie = cookies().get("onlineOpenChatAuth");
 
   // 로그인이 안되어 있으면서 + 현재 로그인 페이지가 아닌 경우
-  if (!authCookie && !window.location.pathname.startsWith("/login")) {
+  if (!authCookie) {
     redirect("/login");
   }
 
