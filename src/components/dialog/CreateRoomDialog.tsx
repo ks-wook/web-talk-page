@@ -42,7 +42,7 @@ export default function CreateRoomDialog({ showModal, friendList, roomList, setR
   const [selectedFriends, setSelectedFriends] = useState<Friend[]>([])
   const [roomName, setRoomName] = useState('')
 
-  console.log('전달받은 친구 리스트 : ', friendList);
+  // console.log('전달받은 친구 리스트 : ', friendList);
 
   const toggleFriend = (friend: Friend) => {
     setSelectedFriends((prev) =>
@@ -55,10 +55,12 @@ export default function CreateRoomDialog({ showModal, friendList, roomList, setR
   const handleCreateRoom = async () => {
     if (selectedFriends.length === 0) return
 
+    /*
     console.log('방 생성 요청', {
       roomName: roomName || '새 채팅방',
       inviteeIds: selectedFriends,
     })
+    */
 
     // setRoomList 호출하여 새로운 채팅방 추가 -> API 성공한 경우만
     const res = await api.post<CreateRoomResponse>("/api/v1/chat/create-room", {
@@ -75,6 +77,9 @@ export default function CreateRoomDialog({ showModal, friendList, roomList, setR
       } as Room
 
       setRoomList(prev => [...prev, newRoom]);
+    }
+    else {
+      console.error('[CreateRoomResponse] 채팅방 생성 실패');
     }
 
     setRoomName('')

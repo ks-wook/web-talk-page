@@ -1,3 +1,4 @@
+import { Room } from "@/app/data";
 
 /**
  * 채팅방 생성 요청
@@ -29,4 +30,20 @@ export interface CreateRoomResponse {
      * 생성된 채탕방 id 값
      */
     roomId : number;
+}
+
+
+/**
+ * 참여중인 채팅방 목록 조회
+ */
+export interface GetJoinedRoomsResponse {
+    /**
+     * 결과
+     */
+    result : string;
+
+    /**
+     * 채팅방 목록
+     */
+    roomList : Room[]
 }

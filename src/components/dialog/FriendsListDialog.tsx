@@ -36,7 +36,7 @@ const dummyFriends: Friend2[] = [
  */
 export default function FriendsListDialog({ showModal, friendList, onClose }: Props) {
   
-  console.log('전달받은 친구 목록 : ', friendList);
+  // console.log('전달받은 친구 목록 : ', friendList);
   
   return (
     <Transition appear show={showModal} as={Fragment}>

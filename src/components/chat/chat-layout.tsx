@@ -24,6 +24,7 @@ import * as StompJs from "@stomp/stompjs";
 import { useUnmountEffect } from "framer-motion";
 import { Client } from "@stomp/stompjs";
 import { GetFriendListResponse } from "@/types/api/user";
+import { GetJoinedRoomsResponse } from "@/types/api/chat";
 
 interface ChatLayoutProps {
   defaultLayout: number[] | undefined;
@@ -57,6 +58,9 @@ export function ChatLayout({
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
 
+  // 현재 선택된 채팅방
+  const [selectedRoom, setSelectedRoom] = React.useState<Room | null>(null);
+
   const myNickname = useRef<string | undefined>(undefined);
 
   const [client, setClient] = React.useState<Client | null>(null);
@@ -75,6 +79,7 @@ export function ChatLayout({
         // TODO : 비동기 태스크로 묶어서 한방에 처리 후 정상 처리 로그 찍기
         getMyInfo();
         getFriendList();
+        getChatRoomList();
         
       } catch (e) {
         console.error('chat layout 마운트 에러 발생', e);
@@ -116,6 +121,23 @@ export function ChatLayout({
     }
 
   };
+
+  /**
+   * 현재 유저 참여중인 채팅방 목록 조회
+   */
+  const getChatRoomList = async () => {
+    try {
+      const res = await api.get<GetJoinedRoomsResponse>('/api/v1/chat/get-joined-rooms');
+      console.log('[getChatRoomList] /get-joined-rooms 호출 결과 : ', res.data);
+
+      // 현재 참여중인 채팅방 목록 세팅
+      setRoomList(res.data.roomList);
+    } catch (e) {
+      console.log('Not logged in');
+    }
+
+  };
+
 
   const useMountEffect = () => {
     const authCookie = getCookie("onlineOpenChatAuth");
@@ -163,6 +185,8 @@ export function ChatLayout({
     console.log("웹소켓 구독 요청...");
 
     // TODO : /chat 뒤에 룸 ID를 붙여서 구독처리
+
+    // 로그인한 계정의 알림용 채널로 구독요청
     clientInstance.subscribe(
       `/sub/chat`,
       (received_message: StompJs.IFrame) => {
@@ -221,14 +245,16 @@ export function ChatLayout({
           links={connectedUsers}
           friendList={friendList} // 친구 목록
           roomList={roomList} // 채팅방 목록
+          selectedRoom={selectedRoom} // 현재 선택된 방
           setConnectedUsers={setConnectedUsers}
           setRoomList={setRoomList}
           setSelectedUser={setSelectedUser}
+          setSelectedRoom={setSelectedRoom}
           setMessages={setMessages}
         />
       </ResizablePanel>
 
-      {selectedUser && (
+      {selectedRoom && (
         <>
           <ResizableHandle withHandle />
 
@@ -237,8 +263,14 @@ export function ChatLayout({
               messagesState={messagesState}
               me={myNickname}
               client={client}
+
+              selectedRoom={selectedRoom}
+              setSelectedRoom={setSelectedRoom}
+
+              // TEMP =========================
               selectedUser={selectedUser}
               setSelectedUser={setSelectedUser}
+              // ==============================
             />
           </ResizablePanel>
         </>

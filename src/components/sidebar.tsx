@@ -38,7 +38,9 @@ interface SidebarProps {
   // links: UserData[];
   friendList : Friend[];
   roomList : Room[];
+  selectedRoom : Room | null;
   setRoomList: React.Dispatch<React.SetStateAction<Room[]>>;
+  setSelectedRoom: React.Dispatch<React.SetStateAction<Room | null>>;
   setConnectedUsers: React.Dispatch<React.SetStateAction<UserData[]>>;
   setSelectedUser: React.Dispatch<React.SetStateAction<UserData | null>>;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
@@ -85,8 +87,10 @@ export function Sidebar({
   friendList,
   isCollapsed,
   roomList,
+  selectedRoom,
   setRoomList,
   setConnectedUsers,
+  setSelectedRoom,
   setSelectedUser,
   setMessages,
 }: SidebarProps) {
@@ -204,7 +208,15 @@ export function Sidebar({
 
     // 채팅 UI 상단 채팅방 제목 부분
     //window.localStorage.setItem("selectedUser", JSON.stringify(link));
-    //setSelectedUser(link);
+    // setSelectedUser('test');
+
+
+    // TODO : 채팅방의 ID를 통해 채팅용 웹소켓 연결
+
+
+    
+    // 현재 채팅중인 방 세팅
+    setSelectedRoom(room);
   };
 
   return (
@@ -257,10 +269,10 @@ export function Sidebar({
       {/* 친구 추가하기 UI*/}
       <FriendsListDialog showModal={showFriedsList} friendList={friendList} onClose={closeFriendsList}/>
 
-      {!isCollapsed && (
+      {!isCollapsed && selectedRoom === null && (
         <div className="flex justify-between p-2 items-center">
           <div className="flex gap-2 items-center text-2xl">
-            <p className="font-medium">참여중인 채팅방 목록</p>
+            <p className="font-medium">참여중인 채팅</p>
             <span className="text-zinc-300">({roomList.length})</span>
           </div>
 
@@ -300,6 +312,44 @@ export function Sidebar({
           </div>
         </div>
       )}
+      {!isCollapsed && selectedRoom && (
+        <div className="flex flex-col items-center gap-2 p-2">
+          {/* 제목 */}
+          <div className="flex items-center gap-1 leading-tight">
+            <p className="text-sm font-medium">
+              참여중인 채팅
+              <span className="text-xs text-zinc-400 ml-1">
+                ({roomList.length})
+              </span>
+            </p>
+          </div>
+
+          {/* 버튼 영역 */}
+          <div className="flex gap-1">
+            <Link
+              href="#"
+              className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-8 w-8")}
+            >
+              <User size={18} onClick={handleFriendsList} />
+            </Link>
+
+            <Link
+              href="#"
+              className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-8 w-8")}
+            >
+              <UserPlus size={18} onClick={handleSearch} />
+            </Link>
+
+            <Link
+              href="#"
+              className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-8 w-8")}
+            >
+              <MessageSquarePlus size={18} onClick={handleCreateRoom} />
+            </Link>
+          </div>
+        </div>
+      )}
+
       <nav className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2">
         {roomList.map((room, index) =>
           isCollapsed ? (
