@@ -39,6 +39,16 @@ export enum RedisMessageType {
 }
 
 
+export interface ChatMessage {
+  id : string; // 채팅의 ID 값
+  roomId : number; // 채팅방 ID
+  userId : number;
+  senderName : string; // 채팅을 보낸 유저의 닉네임
+  message : string; // 메시지 내용
+  sentAt : number; // 메시지를 보낸 시간 (timestamp millisec 단위)
+}
+
+
 /**
  * 채팅방 데이터 형식
  */
@@ -57,7 +67,7 @@ export interface Room {
   /**
    * 채팅 내역
    */
-  messages : WebSocketMsg[];
+  messages : ChatMessage[];
 }
 
 /**

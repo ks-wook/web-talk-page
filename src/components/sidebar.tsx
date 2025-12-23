@@ -32,6 +32,7 @@ import api from "@/lib/axios";
 import CreateRoomDialog from "./dialog/CreateRoomDialog";
 import FriendsListDialog from "./dialog/FriendsListDialog";
 import { ChatSubscriptionManager } from "@/lib/chatSubscriptions";
+import { ChatListResponse } from "@/types/api/chat";
 
 interface SidebarProps {
   me: React.RefObject<string>;
@@ -220,6 +221,16 @@ export function Sidebar({
       console.log('이전에 구독중이던 채팅방 해제...');
       chatSubscriptionManager.unsubscribeChatRoom();
 
+      // 구독할 채팅방의 이전 채팅목록을 받아온다.
+      const res = await api.get<ChatListResponse>(`/api/v1/chat/rooms/${room.id}/messages`);
+
+      console.log('[조회된 최근 채팅 내역] : ', res);
+
+      // 이전 채팅 내역 세팅
+      if(res.data.result === "SUCCESS") {
+        room.messages = res.data.messages;
+      }
+      
       // 새로운 채팅방에 대해 구독 요청
       chatSubscriptionManager.subscribeChatRoom(room.id, (payload) => {
         console.log("[chat message]", payload as WebSocketMsg);
@@ -228,6 +239,7 @@ export function Sidebar({
         setSelectedRoom(prev => {
           if (!prev) return prev;
 
+          // 초기화가 안되어있다면 빈배열로 세팅
           if(prev.messages === undefined || prev.messages === null) {
             prev.messages = [];
           }

@@ -78,10 +78,6 @@ export function ChatLayout({
     selectedUser?.messages ?? [] // selectedUser가 null일 경우 빈 배열을 사용
   );
 
-  const [roomMessages, setRoomMessages] = React.useState<WebSocketMsg[]>(
-    selectedRoom?.messages ?? [] // selectedRoom이 null일 경우 빈 배열을 사용
-  );
-  
   /**
    * chat-layout 마운트 완료 시 최초 한번 호출
    */
@@ -155,48 +151,6 @@ export function ChatLayout({
 
   };
 
-
-  /**
-   * 채팅 서버 연결 (Deprecated)
-   */
-  /*
-  const connectChatServer = () => {
-    const authCookie = getCookie("onlineOpenChatAuth");
-
-    if (client === null) {
-      console.log('[setSocket] 채팅 서버 접속 기록이 없습니다. 웹소켓 접속을 시도합니다.');
-
-      const setSocket = async () => {
-        const C = new StompJs.Client({
-          brokerURL: "ws://localhost:7002/ws-stomp" + `?token=` + authCookie,
-          connectHeaders: {
-            Authorization: `Bearer ${authCookie}`,
-          },
-          reconnectDelay: 5000,
-          onConnect: () => {
-            console.log("채팅 서버 접속 완료...");
-            subscribe(C); // Pass the client instance
-          },
-          onWebSocketError: (error) => {
-            console.log("Error with websocket", error);
-          },
-          onStompError: (frame) => {
-            console.dir(`Broker reported error: ${frame.headers.message}`);
-            console.dir(`Additional details: ${frame}`);
-          },
-        });
-
-        console.log('[세팅된 소켓] : ', C);
-
-        setClient(C); // WebSocket 클라이언트를 저장
-        C.activate();
-      };
-
-      setSocket();
-    }
-  };
-  */
-
   const connectChatServer = () => {
     const authCookie = getCookie("onlineOpenChatAuth");
 
@@ -260,61 +214,6 @@ export function ChatLayout({
   };
 
   connectChatServer();
-
-  /**
-   * 웹소켓 알림 채널 구독 (Deprecated)
-   * @param clientInstance 
-   */
-  // const subscribe = (clientInstance: StompJs.Client) => {
-  //   console.log("알림채널 구독 요청 전송");
-
-  //   // TODO : /chat 뒤에 룸 ID를 붙여서 구독처리
-
-  //   // 로그인한 계정의 알림용 채널로 구독요청
-  //   clientInstance.subscribe(
-  //     `/sub/chat`,
-  //     (received_message: StompJs.IFrame) => {
-  //       const message: Message = JSON.parse(received_message.body);
-  //       const item = window.localStorage.getItem("selectedUser");
-
-  //       if (item != null) {
-  //         const user: User = JSON.parse(item);
-
-  //         // 현재 채팅방의 채팅인 경우만 UI에 표시...
-  //         // TODO : 현재 방의 채팅만 가져올 것이므로 나중에는 다 표시할 것임
-  //         if (message.to == user.name || message.from == user.name) {
-  //           setMessages((prevMessages) => [...prevMessages, message]);
-  //         }
-  //       }
-  //     }
-  //   );
-  // };
-
-  /**
-   * 웹소켓 채널 구독 요청 (Deprecated)
-   * @param clientInstance 
-   */
-  /*
-  const subscribe = (clientInstance: StompJs.Client) => {
-    console.log("[subscribe] 알림채널 구독 요청 전송");
-
-    // 로그인한 계정의 알림용 채널로 구독요청
-    const subscription = subscribeNotificationChannel(
-      clientInstance,
-      myId.current,
-      (message) => {
-        // 실제 알림 처리 로직
-        const body : WebSocketMsg = JSON.parse(message.body) as WebSocketMsg;
-        console.log("[notification received]", body);
-
-        // TODO : 새 채팅방 초대인 경우 채팅방 구독 처리
-
-
-      }
-    );
-  };
-  */
-
 
   return (
     <ResizablePanelGroup

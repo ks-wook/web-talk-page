@@ -1,4 +1,4 @@
-import { Room } from "@/app/data";
+import { ChatMessage, Room } from "@/app/data";
 
 /**
  * 채팅방 생성 요청
@@ -46,4 +46,21 @@ export interface GetJoinedRoomsResponse {
      * 채팅방 목록
      */
     roomList : Room[]
+}
+
+
+/**
+ * 최근 채팅방 채팅내역 조회 요청 결과
+ * api : /api/v1/chat/rooms/{roomId}/messages
+ */
+export interface ChatListResponse {
+    /**
+     * 결과
+     */
+    result : string;
+    
+    /**
+     * 채팅 내역 (최대 100개)
+     */
+    messages : ChatMessage[];
 }
