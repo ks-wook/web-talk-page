@@ -1,24 +1,5 @@
-// export const userData = [];
-
-export const loggedInUserData = {
-  id: 5,
-  avatar: "/LoggedInUser.jpg",
-  name: "Jakob Hoeg",
-};
-
-export type LoggedInUserData = typeof loggedInUserData;
-
 /**
- * 메시지 형태 (Deprecated)
- */
-export interface Message {
-  to: string;
-  from: string;
-  message: string;
-}
-
-/**
- * 메시지 형태2
+ * 알림 채널로부터 받는 데이터
  */
 export interface WebSocketMsg {
   type : string; // 메시지 브로커 메시지 타입 (RedisMessage.java)
@@ -28,8 +9,7 @@ export interface WebSocketMsg {
   roomName : string; // 수신된 채팅방 명
 }
 
-export type User = {
-  messages: Message[];
+export type SearchedUser = {
   name: string;
 };
 
@@ -37,7 +17,6 @@ export enum RedisMessageType {
   INVITE,
   NEW_MESSAGE
 }
-
 
 export interface ChatMessage {
   id : string; // 채팅의 ID 값

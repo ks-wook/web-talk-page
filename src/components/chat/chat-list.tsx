@@ -1,4 +1,4 @@
-import { Message, Room, User, WebSocketMsg } from "@/app/data";
+import { Room, WebSocketMsg } from "@/app/data";
 import { cn } from "@/lib/utils";
 import React, { useRef } from "react";
 import { Avatar, AvatarImage } from "../ui/avatar";
@@ -8,31 +8,16 @@ import { Client } from "@stomp/stompjs";
 
 interface ChatListProps {
   me: React.RefObject<string>;
-  messages?: Message[];
-  roomMessages? : WebSocketMsg[];
-  selectedUser: User;
   selectedRoom: Room | null;
   sendMessage: (newMessage: WebSocketMsg) => void;
 }
 
 export function ChatList({
   me,
-  messages,
-  // roomMessages,
-  // selectedUser,
   selectedRoom,
   sendMessage,
 }: ChatListProps) {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-
-  /*
-  React.useEffect(() => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop =
-        messagesContainerRef.current.scrollHeight;
-    }
-  }, [messages]);
-  */
 
   React.useEffect(() => {
     if (messagesContainerRef.current) {
@@ -102,8 +87,6 @@ export function ChatList({
       </div>
       <ChatBottombar
         me={me}
-        // selectedUser={selectedUser}
-
         selectedRoom={selectedRoom}
         sendMessage={sendMessage}
       />

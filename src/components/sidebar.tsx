@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MessageSquarePlus, Search, Send, User, UserPlus } from "lucide-react";
+import { MessageSquarePlus, User, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -10,21 +10,16 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from "@/components/ui/tooltip";
-import { Avatar, AvatarImage } from "./ui/avatar";
-import { User as UserData, Message, Friend, Room, WebSocketMsg } from "@/app/data";
-import React, { useEffect } from "react";
+import { SearchedUser as UserData, Friend, Room, WebSocketMsg } from "@/app/data";
 
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
   TextField,
   IconButton,
   List,
   ListItem,
   ListItemText,
-  Button,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import "@mui/material/styles"; // MUI 스타일 추가
@@ -33,11 +28,11 @@ import CreateRoomDialog from "./dialog/CreateRoomDialog";
 import FriendsListDialog from "./dialog/FriendsListDialog";
 import { ChatSubscriptionManager } from "@/lib/chatSubscriptions";
 import { ChatListResponse } from "@/types/api/chat";
+import React from "react";
 
 interface SidebarProps {
   me: React.RefObject<string>;
   isCollapsed: boolean;
-  // links: UserData[];
   friendList : Friend[];
   roomList : Room[];
   selectedRoom : Room | null;
@@ -46,13 +41,11 @@ interface SidebarProps {
   setSelectedRoom: React.Dispatch<React.SetStateAction<Room | null>>;
   setConnectedUsers: React.Dispatch<React.SetStateAction<UserData[]>>;
   setSelectedUser: React.Dispatch<React.SetStateAction<UserData | null>>;
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
 const searchResult = (name: string): UserData => {
   return {
     name,
-    messages: [], // 기본값으로 빈 배열
   };
 };
 
@@ -86,17 +79,13 @@ export const fetchUsers = async (searchQuery: string, myName: string | null): Pr
 
 export function Sidebar({
   me,
-  // links,
   friendList,
   isCollapsed,
   roomList,
   selectedRoom,
   chatSubscriptionManager,
   setRoomList,
-  setConnectedUsers,
   setSelectedRoom,
-  setSelectedUser,
-  setMessages,
 }: SidebarProps) {
   // 모달 제어
   const [showModal, setShowModal] = React.useState<boolean>(false);
@@ -113,8 +102,6 @@ export function Sidebar({
   const closeModal = () => {
     setShowModal(false);
   };
-
-
 
   const handleFriendsList = () => {
     setShowFriedsList(true);

@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Sidebar } from "../sidebar";
 import { Chat } from "./chat";
-import { User, Message, Friend, Room, WebSocketMsg, RedisMessageType } from "@/app/data";
+import { Friend, Room, WebSocketMsg } from "@/app/data";
 import api from "@/lib/axios";
 import { redirect } from "next/navigation";
 
@@ -46,19 +46,13 @@ export function ChatLayout({
   navCollapsedSize,
 }: ChatLayoutProps) {
 
-  // TODO : Connected Users가 아니라 Room으로 교체
-  const [connectedUsers, setConnectedUsers] = React.useState<User[]>([]);
-
   // 채팅방 목록
   const [roomList, setRoomList] = React.useState<Room[]>([]);
-
 
   // 친구 목록
   const [friendList, setFriendList] = React.useState<Friend[]>([]);
 
-  
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
-  const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
 
   // 현재 선택된 채팅방
   const [selectedRoom, setSelectedRoom] = React.useState<Room | null>(null);
@@ -73,10 +67,6 @@ export function ChatLayout({
    */
   const managerRef = useRef<ChatSubscriptionManager | null>(null);
 
-
-  const [messagesState, setMessages] = React.useState<Message[]>(
-    selectedUser?.messages ?? [] // selectedUser가 null일 경우 빈 배열을 사용
-  );
 
   /**
    * chat-layout 마운트 완료 시 최초 한번 호출
@@ -190,7 +180,6 @@ export function ChatLayout({
               }
             });
 
-            // subscribe(C); // Pass the client instance
           },
           onWebSocketError: (error) => {
             console.log("Error with websocket", error);
@@ -251,16 +240,12 @@ export function ChatLayout({
         <Sidebar
           me={myNickname} // 현재 유저 닉네임
           isCollapsed={isCollapsed}
-          links={connectedUsers}
           friendList={friendList} // 친구 목록
           roomList={roomList} // 채팅방 목록
           selectedRoom={selectedRoom} // 현재 선택된 방
           chatSubscriptionManager={managerRef.current} // 구독 매니저 값
-          setConnectedUsers={setConnectedUsers}
           setRoomList={setRoomList}
-          setSelectedUser={setSelectedUser}
           setSelectedRoom={setSelectedRoom}
-          setMessages={setMessages}
         />
       </ResizablePanel>
 
@@ -270,17 +255,10 @@ export function ChatLayout({
 
           <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
             <Chat
-              messagesState={messagesState}
               me={myNickname}
               client={client}
-
               selectedRoom={selectedRoom}
               setSelectedRoom={setSelectedRoom}
-
-              // TEMP =========================
-              selectedUser={selectedUser}
-              setSelectedUser={setSelectedUser}
-              // ==============================
             />
           </ResizablePanel>
         </>

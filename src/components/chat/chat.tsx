@@ -1,30 +1,21 @@
-import { Message, Room, User, WebSocketMsg } from "@/app/data";
+import { Room, WebSocketMsg } from "@/app/data";
 import ChatTopbar from "./chat-topbar";
 import { ChatList } from "./chat-list";
 import React from "react";
 import { Client } from "@stomp/stompjs";
 
 interface ChatProps {
-  messagesState: Message[];
   me: React.RefObject<string>;
   client: Client;
-  selectedUser: User;
   selectedRoom: Room | null;
-  setSelectedUser: React.Dispatch<React.SetStateAction<User | null>>;
   setSelectedRoom: React.Dispatch<React.SetStateAction<Room | null>>;
 }
 
 export function Chat({
-  messagesState,
   me,
   client,
   selectedRoom,
   setSelectedRoom,
-
-  // TEMP ===========
-  selectedUser,
-  setSelectedUser,
-  // ================
 }: ChatProps) {
   // selectedUser가 null인 경우, 빈 배열로 초기화
 
@@ -55,8 +46,6 @@ export function Chat({
 
       <ChatList
         me={me}
-        messages={messagesState}
-        selectedUser={selectedUser} // selectedUser가 null일 수 있음
         selectedRoom={selectedRoom}
         sendMessage={sendMessage}
       />
