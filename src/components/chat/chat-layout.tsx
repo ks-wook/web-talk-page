@@ -74,22 +74,27 @@ export function ChatLayout({
   useEffect(() => {
     const init = async () => {
       try {
+        // 1) UI 로딩 시 호출이 필요한 API들 정리
+        const promises = [
+          getMyInfo(),
+          getFriendList(),
+          getChatRoomList(),
+        ];
 
-        // TODO : 비동기 태스크로 묶어서 한방에 처리 후 정상 처리 로그 찍기
-        getMyInfo();
-        getFriendList();
-        getChatRoomList();
+        // 2) 모든 Promise 완료 대기
+        await Promise.all(promises);
 
+        // 3) 모두 처리된 이후 채팅서버 접속(웹소켓) 처리 로직 실행
+        connectChatServer();
 
-        // TODO : 위의 API들 처리 전부 끝난 다음 connectChatServer(); 호출
-        
+        console.log('채팅 프로그램 접속 완료...');
+
       } catch (e) {
         console.error('chat layout 마운트 에러 발생', e);
       }
     };
 
     init();
-
   }, []);
 
   /**
@@ -202,7 +207,7 @@ export function ChatLayout({
 
   };
 
-  connectChatServer();
+  // connectChatServer();
 
   return (
     <ResizablePanelGroup
@@ -243,7 +248,7 @@ export function ChatLayout({
           friendList={friendList} // 친구 목록
           roomList={roomList} // 채팅방 목록
           selectedRoom={selectedRoom} // 현재 선택된 방
-          chatSubscriptionManager={managerRef.current} // 구독 매니저 값
+          chatSubscriptionManagerRef={managerRef} // 구독 매니저 값
           setRoomList={setRoomList}
           setSelectedRoom={setSelectedRoom}
         />

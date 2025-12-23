@@ -36,7 +36,7 @@ interface SidebarProps {
   friendList : Friend[];
   roomList : Room[];
   selectedRoom : Room | null;
-  chatSubscriptionManager : ChatSubscriptionManager | null;
+  chatSubscriptionManagerRef: React.RefObject<ChatSubscriptionManager | null>;
   setRoomList: React.Dispatch<React.SetStateAction<Room[]>>;
   setSelectedRoom: React.Dispatch<React.SetStateAction<Room | null>>;
   setConnectedUsers: React.Dispatch<React.SetStateAction<UserData[]>>;
@@ -83,7 +83,7 @@ export function Sidebar({
   isCollapsed,
   roomList,
   selectedRoom,
-  chatSubscriptionManager,
+  chatSubscriptionManagerRef,
   setRoomList,
   setSelectedRoom,
 }: SidebarProps) {
@@ -157,23 +157,6 @@ export function Sidebar({
     );
 
     console.log("[addFriends] 친구 추가 요청 결과 : ", res);
-
-    /*
-    setConnectedUsers((prevUsers) => {
-      // user.id가 이미 prevUsers 배열에 있는지 확인
-      const userExists = prevUsers.some(
-        (existingUser) => existingUser.name === user.name
-      );
-
-      if (userExists) {
-        // 이미 존재하는 경우 아무것도 하지 않음
-        return prevUsers;
-      }
-
-      // 존재하지 않는 경우에만 추가
-      return [...prevUsers, user];
-    });
-    */
   };
 
   const handleChangeRoom = async (room: Room) => {
@@ -181,32 +164,12 @@ export function Sidebar({
 
     console.log('선택된 채팅방 : ', room);
 
-    // TODO : redis를 통해 채팅 로그를 불러들어야함
-    /*
-    const result = await api.get("/api/v1/chat/chat-list", {
-      params: {
-        name: link.name,
-        from: me.current,
-      },
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      withCredentials: true
-    });
-    */
-
-    // setMessages(result.data.result);
-
-    // 채팅 UI 상단 채팅방 제목 부분
-    //window.localStorage.setItem("selectedUser", JSON.stringify(link));
-    // setSelectedUser('test');
-
     // 채팅방의 ID를 통해 채팅용 웹소켓 연결
-    if(room !== null && chatSubscriptionManager) {
+    if(room !== null && chatSubscriptionManagerRef.current) {
       // 이전에 구독중이던 방 구독 해제
 
       console.log('이전에 구독중이던 채팅방 해제...');
-      chatSubscriptionManager.unsubscribeChatRoom();
+      chatSubscriptionManagerRef.current.unsubscribeChatRoom();
 
       // 구독할 채팅방의 이전 채팅목록을 받아온다.
       const res = await api.get<ChatListResponse>(`/api/v1/chat/rooms/${room.id}/messages`);
@@ -219,7 +182,7 @@ export function Sidebar({
       }
       
       // 새로운 채팅방에 대해 구독 요청
-      chatSubscriptionManager.subscribeChatRoom(room.id, (payload) => {
+      chatSubscriptionManagerRef.current.subscribeChatRoom(room.id, (payload) => {
         console.log("[chat message]", payload as WebSocketMsg);
 
         // 현재 선택된 room에 대해 다른 값은 유지하고 message 값만 update
@@ -246,8 +209,7 @@ export function Sidebar({
     }
     else { // 채팅방 선택 오류 발생
       console.error('채팅방 입장에 실패 하였습니다.');
-      console.log('선택된 채팅방 : ', room);
-      console.log('chatSubscriptionManager : ', chatSubscriptionManager);
+      console.log('chatSubscriptionManager : ', chatSubscriptionManagerRef);
     }    
 
   };
@@ -267,8 +229,8 @@ export function Sidebar({
               onChange={handleSearchQueryChange}
               InputProps={{
                 endAdornment: (
-                  <IconButton edge="end" color="primary">
-                    <SearchIcon onClick={handelSearchButton} />
+                  <IconButton edge="end" color="primary" onClick={handelSearchButton}>
+                    <SearchIcon />
                   </IconButton>
                 ),
               }}
