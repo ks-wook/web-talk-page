@@ -1,9 +1,11 @@
 import axios from "axios";
 import Cookies from 'js-cookie';
 
+const SERVER_URL = process.env.NEXT_PUBLIC_ONLINE_OPEN_CHAT_SERVER;
+
 // Axios 인스턴스 생성
 const api = axios.create({
-  baseURL: "http://localhost:7002", // API의 기본 URL
+  baseURL: `${SERVER_URL}`, // API의 기본 URL
   timeout: 10000, // 요청 타임아웃 (밀리초)
   headers: {
     "Content-Type": "application/json",

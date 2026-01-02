@@ -186,11 +186,12 @@ export function ChatLayout({
     const authCookie = getCookie("onlineOpenChatAuth");
 
     if (client === null) {
+      const WS_URL = process.env.NEXT_PUBLIC_ONLINE_OPEN_CHAT_WS;
       console.log('[setSocket] 채팅 서버 접속 기록이 없습니다. 웹소켓 접속을 시도합니다.');
 
       const setSocket = async () => {
         const C = new StompJs.Client({
-          brokerURL: "ws://localhost:7002/ws-stomp" + `?token=` + authCookie,
+          brokerURL: WS_URL + `?token=` + authCookie,
           connectHeaders: {
             Authorization: `Bearer ${authCookie}`,
           },
