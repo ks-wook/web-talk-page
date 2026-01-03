@@ -29,6 +29,8 @@ import FriendsListDialog from "./dialog/FriendsListDialog";
 import { ChatSubscriptionManager } from "@/lib/chatSubscriptions";
 import { ChatListResponse } from "@/types/api/chat";
 import React from "react";
+import { AddFriendResponse, GetFriendListResponse } from "@/types/api/user";
+import { useGlobalModal } from '@/components/modal/GlobalModalProvider';
 
 interface SidebarProps {
   me: React.RefObject<string>;
@@ -41,6 +43,7 @@ interface SidebarProps {
   setSelectedRoom: React.Dispatch<React.SetStateAction<Room | null>>;
   setConnectedUsers: React.Dispatch<React.SetStateAction<UserData[]>>;
   setSelectedUser: React.Dispatch<React.SetStateAction<UserData | null>>;
+  setFriendList : React.Dispatch<React.SetStateAction<Friend[]>>;
 }
 
 const searchResult = (name: string): UserData => {
@@ -86,6 +89,7 @@ export function Sidebar({
   chatSubscriptionManagerRef,
   setRoomList,
   setSelectedRoom,
+  setFriendList,
 }: SidebarProps) {
   // 모달 제어
   const [showModal, setShowModal] = React.useState<boolean>(false);
@@ -95,11 +99,13 @@ export function Sidebar({
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [searchResults, setSearchResults] = React.useState<UserData[]>([]);
 
+  const { openModal } = useGlobalModal();
+
   const handleSearch = () => {
     setShowModal(true);
   };
 
-  const closeModal = () => {
+  const closeSearchModal = () => {
     setShowModal(false);
   };
 
@@ -141,26 +147,85 @@ export function Sidebar({
    * @param user 
    */
   const addFriends = async (user: UserData) => {
-    const token = getCookie('onlineOpenChatAuth');
 
     // 친구 추가 요청
-    const res = await api.post(
-      "/api/v1/user/add-friend",
-      {
+    const res = await api.post<AddFriendResponse>("/api/v1/user/add-friend", {
         friendNickname : user.name
-      }, // data
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+      },
     );
 
     console.log("[addFriends] 친구 추가 요청 결과 : ", res);
+
+    // 친구 검색 모달 닫기
+    closeSearchModal();
+
+    if(res.data.result === "SUCCESS") {
+      openModal({
+        title: '성공',
+        content: (
+          <div className="text-green-600">
+            {user.name}님이 친구로 추가되었습니다.
+          </div>
+        ),
+      });
+
+      // 친구 목록 api 재호출, 친구목록 갱신
+      const res = await api.get<GetFriendListResponse>('/api/v1/user/get-friendList');
+      console.log('[getFriendList] /get-friendList 호출 결과 : ', res.data);
+
+      if(res.data.result === "SUCCESS") {
+        // 현재 유저 친구 목록 세팅
+        setFriendList(res.data.friendList);
+      }
+      else {
+        openModal({
+          title: '요청 실패',
+          content: (
+            <div className="text-green-600">
+              친구 목록 갱신에 실패하였습니다.
+            </div>
+          ),
+        });
+      }
+
+      // 친구 추가 모달 닫기
+      closeSearchModal();
+    }
+    else if(res.data.result === "ALREADY_FRIEND") {
+      openModal({
+        title: '요청 실패',
+        content: (
+          <div className="text-green-600">
+            이미 친구로 등록된 유저입니다.
+          </div>
+        ),
+      });
+
+    }
+    else if(res.data.result === "NOT_EXIST_USER") {
+      openModal({
+        title: '요청 실패',
+        content: (
+          <div className="text-green-600">
+            존재하지 않는 유저입니다.
+          </div>
+        ),
+      });
+    }
+    else {
+      openModal({
+        title: '요청 실패',
+        content: (
+          <div className="text-green-600">
+            친구 추가에 실패하였습니다.
+          </div>
+        ),
+      });
+    }
+
   };
 
   const handleChangeRoom = async (room: Room) => {
-    const token = getCookie('onlineOpenChatAuth');
 
     console.log('선택된 채팅방 : ', room);
 
@@ -219,12 +284,12 @@ export function Sidebar({
       data-collapsed={isCollapsed}
       className="relative group flex flex-col h-full gap-4 p-2 data-[collapsed=true]:p-2 "
     >
-      <Dialog open={showModal} onClose={closeModal} maxWidth="sm" fullWidth>
+      <Dialog open={showModal} onClose={closeSearchModal} maxWidth="sm" fullWidth>
         <DialogContent>
           <div className="flex items-center">
             <TextField
               fullWidth
-              placeholder="Search..."
+              placeholder="친구의 닉네임으로 검색할 수 있습니다."
               value={searchQuery}
               onChange={handleSearchQueryChange}
               InputProps={{

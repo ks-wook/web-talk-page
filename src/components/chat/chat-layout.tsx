@@ -288,6 +288,7 @@ export function ChatLayout({
             chatSubscriptionManagerRef={managerRef} // 구독 매니저 값
             setRoomList={setRoomList}
             setSelectedRoom={setSelectedRoom}
+            setFriendList={setFriendList}
           />
         </ResizablePanel>
 
