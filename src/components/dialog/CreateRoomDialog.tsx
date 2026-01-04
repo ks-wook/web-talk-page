@@ -24,19 +24,6 @@ type Props = {
   onClose: () => void
 }
 
-type Friend2 = {
-  id: string
-  name: string
-  statusMessage: string
-}
-
-const dummyFriends: Friend2[] = [
-  { id: '1', name: '김민수', statusMessage: '지금 접속 중' },
-  { id: '2', name: '이영희', statusMessage: '개발 중... 💻' },
-  { id: '3', name: '박철수', statusMessage: '밥 먹는 중 🍚' },
-  { id: '4', name: '최지은', statusMessage: '카톡 환영 😊' },
-  { id: '5', name: '홍길동', statusMessage: '자리 비움' },
-]
 
 /**
  * 새 채팅방 설정용 컴포넌트
@@ -58,13 +45,6 @@ export default function CreateRoomDialog({ showModal, friendList, roomList, myNa
   const handleCreateRoom = async () => {
     if (selectedFriends.length === 0) return
 
-    /*
-    console.log('방 생성 요청', {
-      roomName: roomName || '새 채팅방',
-      inviteeIds: selectedFriends,
-    })
-    */
-
     const inviteeIds = [...selectedFriends.map(friend => friend.id), myId];
     console.log(inviteeIds);
 
@@ -77,13 +57,6 @@ export default function CreateRoomDialog({ showModal, friendList, roomList, myNa
     console.log('[CreateRoomResponse]  방 생성 요청 결과 : ', res);
 
     if(res.data.result === "SUCCESS") {
-      /*
-      const newRoom = {
-        name : res.data.roomName,
-        id : res.data.roomId
-      } as Room
-      */
-      // setRoomList(prev => [...prev, newRoom]);
 
       openModal({
         title: '새로운 채팅방',
