@@ -11,116 +11,123 @@ import {
 } from '@headlessui/react'
 import { Fragment, useEffect, useState } from 'react'
 
-import api from '@/lib/axios';
-import { UpdateStatusTextResponse } from '@/types/api/user';
+import api from '@/lib/axios'
+import { UpdateStatusTextResponse, UpdateNicknameResponse } from '@/types/api/user'
 
-import { useGlobalModal } from '@/components/modal/GlobalModalProvider';
-import { useRouter } from 'next/navigation';
+import { useGlobalModal } from '@/components/modal/GlobalModalProvider'
+import { useRouter } from 'next/navigation'
+
+import { Pencil, Check } from 'lucide-react'
+
 type Props = {
   showModal: boolean
   friendList: Friend[]
-  myInfo : MyInfo | null;
-  onClose: () => void,
+  myInfo: MyInfo | null
+  onClose: () => void
 }
 
-/**
- * 친구 목록 컴포넌트 (내 정보 포함)
- */
 export default function FriendsListDialog({
   showModal,
   friendList,
   myInfo,
   onClose,
 }: Props) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [statusText, setStatusText] = useState(myInfo?.statusText || '');
+  const [isEditingStatus, setIsEditingStatus] = useState(false)
+  const [isEditingNickname, setIsEditingNickname] = useState(false)
 
-  const { openModal } = useGlobalModal();
+  const [statusText, setStatusText] = useState(myInfo?.statusText || '')
+  const [nickname, setNickname] = useState(myInfo?.nickname || '')
 
-  const router = useRouter();
+  const { openModal } = useGlobalModal()
+  const router = useRouter()
 
-  /**
-   * 내 정보가 변경되었을 때 상태 메시지 업데이트
-   */
+  const getNicknameBase = (value: string) => {
+    if (!value) return ''
+    const idx = value.indexOf('#')
+    return idx >= 0 ? value.substring(0, idx) : value
+  }
+
   useEffect(() => {
-    setStatusText(myInfo?.statusText || '');
-  }, [myInfo]);
-  
-  const handleSaveStatus = async () => {
-    // 상태 메시지 수정 API 호출
-    const res = await api.post<UpdateStatusTextResponse>('/api/v1/user/update-status-text', {
-      statusText: statusText,
-    });
+    setStatusText(myInfo?.statusText || '')
+    setNickname(myInfo?.nickname || '')
+  }, [myInfo])
 
-    console.log('[FriendsListDialog] 상태메시지 변경 API 호출 결과 : ', res.data);
+  const handleSaveStatus = async () => {
+    const res = await api.post<UpdateStatusTextResponse>(
+      '/api/v1/user/update-status-text',
+      { statusText }
+    )
 
     if (res.data.result === 'SUCCESS') {
-
-      setStatusText(res.data.statusText);
-
+      setStatusText(res.data.statusText)
       openModal({
         title: '성공',
-        content: (
-          <div className="text-green-600">
-            상태 메시지가 성공적으로 변경되었습니다.
-          </div>
-        ),
-      });
-    }
-    else {
+        content: <div className="text-green-600">상태 메시지가 변경되었습니다.</div>,
+      })
+    } else {
       openModal({
         title: '요청 실패',
-        content: (
-          <div className="text-green-600">
-            상태메시지 변경에 실패하였습니다. : {res.data.result}
-          </div>
-        ),
-      });
+        content: <div className="text-red-600">{res.data.result}</div>,
+      })
     }
 
-    setIsEditing(false)
+    setIsEditingStatus(false)
   }
 
-  const onFriendListClose = () => {
-    onClose();
-    setIsEditing(false);
+  const handleSaveNickname = async () => {
+    const res = await api.post<UpdateNicknameResponse>(
+      '/api/v1/user/update-nickname',
+      { newNickname: nickname }
+    )
+
+    if (res.data.result === 'SUCCESS') {
+      setNickname(res.data.changedNickname)
+      openModal({
+        title: '성공',
+        content: <div className="text-green-600">닉네임이 변경되었습니다.</div>,
+      })
+    } else {
+      openModal({
+        title: '요청 실패',
+        content: <div className="text-red-600">{res.data.result}</div>,
+      })
+    }
+
+    setIsEditingNickname(false)
   }
 
-  /**
-   * 로그아웃 처리
-   */
   const logout = async () => {
+    const res = await api.get('/api/v1/auth/logout')
 
-    // 로그아웃 api 호출
-    const res = await api.get<LogoutResponse>('/api/v1/auth/logout');
-    
-    console.log('[FriendsListDialog] 로그아웃 API 호출 결과 : ', res);
-
-    // 로그아웃 성공 시 /login 페이지로 이동
-    if(res.data.result === 'SUCCESS') {
-        // 로컬 기록용 AccessToken 삭제
-      document.cookie = "onlineOpenChatAuth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-      
-
-      router.push('/login');
-    }
-    else {
+    if (res.data.result === 'SUCCESS') {
+      document.cookie =
+        'onlineOpenChatAuth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+      router.push('/login')
+    } else {
       openModal({
         title: '요청 실패',
         content: (
-          <div className="text-green-600">
+          <div className="text-red-600">
             로그아웃에 실패하였습니다. : {res.data.result}
           </div>
         ),
-      });
+      })
     }
+  }
+
+  const onFriendListClose = () => {
+    // 닉네임 수정 버튼이 활성화 되어있다면 기존 값으로 변경
+    if(isEditingNickname) { 
+      setNickname(myInfo?.nickname || '')
+    }
+    setIsEditingStatus(false)
+    setIsEditingNickname(false)
+    onClose()
   }
 
   return (
     <Transition appear show={showModal} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onFriendListClose}>
-        {/* Overlay */}
         <TransitionChild
           as={Fragment}
           enter="ease-out duration-200"
@@ -130,7 +137,7 @@ export default function FriendsListDialog({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
+          <div className="fixed inset-0 bg-black/40" />
         </TransitionChild>
 
         <div className="fixed inset-0 flex items-center justify-center p-4">
@@ -149,78 +156,103 @@ export default function FriendsListDialog({
               </DialogTitle>
 
               <Description className="mb-3 text-sm text-gray-500">
-                내 정보 및 친구로 추가된 사용자 목록입니다.
+                내 정보 및 친구 목록
               </Description>
 
-              {/* ===================== */}
-              {/* ✅ 내 정보 카드 */}
-              {/* ===================== */}
-              <div className="mb-3 rounded-xl border border-gray-200 bg-gray-50 p-2">
-                <div className="flex items-center gap-3 rounded-lg bg-white px-3 py-2 shadow-sm">
-                  {/* 아바타 */}
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-sm font-semibold text-green-600">
-                    {myInfo?.nickname ? myInfo.nickname.charAt(0) : '?'}
+              <div className="mb-3 rounded-xl border bg-gray-50 p-2">
+                <div className="flex gap-3 rounded-lg bg-white px-3 py-2 shadow-sm">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 font-semibold text-green-600">
+                    {nickname.length > 0 ? nickname.charAt(0) : ''}
                   </div>
 
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-sm font-medium text-gray-900">
-                      {myInfo?.nickname} <span className="text-xs text-gray-400">(나)</span>
-                    </span>
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    <div className="flex items-center gap-1">
+                      {isEditingNickname ? (
+                        <>
+                          <input
+                            value={nickname}
+                            maxLength={20}
+                            onChange={(e) => setNickname(e.target.value)}
+                            className="rounded-md border px-2 py-1 text-sm"
+                          />
+                          <button
+                            onClick={handleSaveNickname}
+                            className="rounded-md p-1 text-blue-600 hover:bg-blue-50"
+                            title="닉네임 저장"
+                          >
+                            <Check size={16} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-sm font-medium">
+                            {nickname}{' '}
+                            <span className="text-xs text-gray-400">(나)</span>
+                          </span>
+                          <button
+                            onClick={() => {
+                              setNickname(getNicknameBase(nickname))
+                              setIsEditingNickname(true)
+                            }}
+                            className="rounded-md p-1 text-gray-500 hover:bg-gray-100"
+                            title="닉네임 수정"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                        </>
+                      )}
+                    </div>
 
-                    {isEditing ? (
-                      <input
-                        value={statusText || ''}
-                        maxLength={255}
-                        onChange={(e) => setStatusText(e.target.value)}
-                        className="mt-1 rounded-md border border-gray-300 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        placeholder="상태 메시지를 입력하세요"
-                      />
-                    ) : (
-                      <span className="truncate text-xs text-gray-500">
-                        {statusText || '상태 메시지가 없습니다.'}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Edit / Save 버튼 */}
-                  <div>
-                    {isEditing ? (
-                      <button
-                        onClick={handleSaveStatus}
-                        className="rounded-md bg-blue-500 px-3 py-1 text-xs font-medium text-white hover:bg-blue-600"
-                      >
-                        저장
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => setIsEditing(true)}
-                        className="rounded-md bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-200"
-                      >
-                        수정
-                      </button>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {isEditingStatus ? (
+                        <>
+                          <input
+                            value={statusText}
+                            maxLength={255}
+                            onChange={(e) => setStatusText(e.target.value)}
+                            className="rounded-md border px-2 py-1 text-xs"
+                          />
+                          <button
+                            onClick={handleSaveStatus}
+                            className="rounded-md p-1 text-blue-600 hover:bg-blue-50"
+                            title="상태 메시지 저장"
+                          >
+                            <Check size={14} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-xs text-gray-500">
+                            {statusText || '상태 메시지가 없습니다.'}
+                          </span>
+                          <button
+                            onClick={() => setIsEditingStatus(true)}
+                            className="rounded-md p-1 text-gray-400 hover:bg-gray-100"
+                            title="상태 메시지 수정"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* ===================== */}
-              {/* 친구 리스트 */}
-              {/* ===================== */}
-              <div className="max-h-72 space-y-1 overflow-y-auto rounded-xl border border-gray-100 bg-gray-50 p-2">
+              <div className="max-h-72 space-y-1 overflow-y-auto rounded-xl border bg-gray-50 p-2">
                 {friendList.map((friend) => (
                   <div
                     key={friend.id}
-                    className="flex items-center gap-3 rounded-lg bg-white px-3 py-2 shadow-sm"
+                    className="flex gap-3 rounded bg-white px-3 py-2 shadow-sm"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-600">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
                       {friend.nickname.charAt(0)}
                     </div>
-
-                    <div className="flex min-w-0 flex-col">
-                      <span className="truncate text-sm font-medium text-gray-900">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">
                         {friend.nickname}
                       </span>
-                      <span className="truncate text-xs text-gray-500">
+                      <span className="text-xs text-gray-500">
                         {friend.statusText || '상태 메시지가 없습니다.'}
                       </span>
                     </div>
@@ -228,20 +260,16 @@ export default function FriendsListDialog({
                 ))}
               </div>
 
-              {/* 닫기 버튼 */}
-              <div className="mt-4 flex justify-between gap-2">
+              <div className="mt-4 flex justify-between">
                 <button
-                  type="button"
                   onClick={logout}
-                  className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
+                  className="rounded-lg bg-red-500 px-4 py-2 text-sm text-white"
                 >
                   로그아웃
                 </button>
-
                 <button
-                  type="button"
                   onClick={onFriendListClose}
-                  className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+                  className="rounded-lg bg-gray-100 px-4 py-2 text-sm"
                 >
                   닫기
                 </button>

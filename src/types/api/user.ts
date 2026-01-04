@@ -48,3 +48,26 @@ export interface UpdateStatusTextResponse {
      */
     statusText : string;
 }
+
+
+/**
+ * 닉네임 수정 요청
+ */
+export interface UpdateNicknameRequest {
+    /**
+     * 수정할 닉네임 내용
+     */
+    newNickname : string;
+}
+
+export interface UpdateNicknameResponse {
+    /**
+     * 결과
+     */
+    result : string;
+
+    /**
+     * 수정된 닉네임
+     */
+    changedNickname : string;
+}  

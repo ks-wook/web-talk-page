@@ -53,11 +53,11 @@ export function ChatList({
               }}
               className={cn(
                 "flex flex-col gap-1 px-4 whitespace-pre-wrap mt-3",
-                message.senderName === myInfo?.nickname ? "items-end" : "items-start"
+                message.userId === myInfo?.userId ? "items-end" : "items-start"
               )}
             >
               {/* 상대 메시지일 경우 닉네임 표시 */}
-              {message.senderName !== myInfo?.nickname && (
+              {message.userId !== myInfo?.userId && (
                 <span className="text-xs text-muted-foreground ml-10">
                   {message.senderName}
                 </span>
@@ -74,7 +74,7 @@ export function ChatList({
                   {message.message}
                 </span>
 
-                {message.senderName === myInfo?.nickname && (
+                {message.userId === myInfo?.userId && (
                   <Avatar className="flex justify-center items-center">
                     <AvatarImage alt={message.senderName} width={24} height={24} />
                   </Avatar>
