@@ -1,15 +1,14 @@
-import { MyInfo, Room, WebSocketMsg } from "@/app/data";
+import { MyInfo, Room, WebSocketTextMessage } from "@/app/data";
 import { cn } from "@/lib/utils";
 import React, { useRef } from "react";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import ChatBottombar from "./chat-bottombar";
 import { AnimatePresence, motion } from "framer-motion";
-import { Client } from "@stomp/stompjs";
 
 interface ChatListProps {
   myInfo : MyInfo | null;
   selectedRoom: Room | null;
-  sendMessage: (newMessage: WebSocketMsg) => void;
+  sendMessage: (newMessage: WebSocketTextMessage) => void;
 }
 
 export function ChatList({

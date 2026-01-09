@@ -1,4 +1,4 @@
-import { ChatMessage, Room } from "@/app/data";
+import { Room, WebSocketTextMessage } from "@/app/data";
 
 /**
  * 채팅방 생성 요청
@@ -62,5 +62,5 @@ export interface ChatListResponse {
     /**
      * 채팅 내역 (최대 100개)
      */
-    messages : ChatMessage[];
+    messages : WebSocketTextMessage[];
 }

@@ -1,7 +1,7 @@
 /**
  * 알림 채널로부터 받는 데이터
  */
-export interface WebSocketMsg {
+export interface WebSocketTextMessage {
   type : string; // 메시지 브로커 메시지 타입 (RedisMessage.java)
   roomId: number; // 방 번호
   message: string; // 메시지 내용
@@ -16,16 +16,8 @@ export type SearchedUser = {
 
 export enum RedisMessageType {
   INVITE,
-  NEW_MESSAGE
-}
-
-export interface ChatMessage {
-  id : string; // 채팅의 ID 값
-  roomId : number; // 채팅방 ID
-  userId : number;
-  senderName : string; // 채팅을 보낸 유저의 닉네임
-  message : string; // 메시지 내용
-  sentAt : number; // 메시지를 보낸 시간 (timestamp millisec 단위)
+  NEW_MESSAGE,
+  ERROR
 }
 
 
@@ -47,7 +39,7 @@ export interface Room {
   /**
    * 채팅 내역
    */
-  messages : ChatMessage[];
+  messages : WebSocketTextMessage[];
 }
 
 /**

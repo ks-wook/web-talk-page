@@ -1,43 +1,34 @@
-import { MyInfo, Room, WebSocketMsg } from "@/app/data";
+import { MyInfo, Room, WebSocketTextMessage } from "@/app/data";
 import ChatTopbar from "./chat-topbar";
 import { ChatList } from "./chat-list";
 import React from "react";
-import { Client } from "@stomp/stompjs";
+import { sendWsMessage } from "@/lib/ws";
 
 interface ChatProps {
   myInfo : MyInfo | null;
-  client: Client;
   selectedRoom: Room | null;
   setSelectedRoom: React.Dispatch<React.SetStateAction<Room | null>>;
 }
 
+import { useGlobalModal } from '@/components/modal/GlobalModalProvider';
+
 export function Chat({
   myInfo,
-  client,
   selectedRoom,
   setSelectedRoom,
 }: ChatProps) {
-  // selectedUser가 null인 경우, 빈 배열로 초기화
-
+  const { openModal } = useGlobalModal();
+  
   /**
    * 채팅 보내는 함수
    * @param newMessage
    */
-  const sendMessage = (newMessage: WebSocketMsg) => {
+  const sendMessage = (newMessage: WebSocketTextMessage) => {
 
     console.log("Sending message...", newMessage);
 
-    if (client) {
-      // 현재 선택된 채팅방으로 메시지 퍼블리싱
-      if(selectedRoom) {
-        client.publish({
-          destination: `/pub/chat/message/${selectedRoom.id}`,
-          body: JSON.stringify(newMessage),
-        });
-      }
-
-      console.log(`> Send message: ${newMessage.message}`);
-    }
+    // 웹소켓 메시지 전송
+    sendWsMessage(newMessage);
   };
 
   return (

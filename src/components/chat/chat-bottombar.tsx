@@ -12,7 +12,7 @@ import React, { useRef, useState } from "react";
 import { buttonVariants } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, m, motion } from "framer-motion";
-import { MyInfo, RedisMessageType, Room, WebSocketMsg } from "@/app/data";
+import { MyInfo, RedisMessageType, Room, WebSocketTextMessage } from "@/app/data";
 import { Textarea } from "../ui/textarea";
 import { EmojiPicker } from "../emoji-picker";
 import { Popover, PopoverTrigger } from "../ui/popover";
@@ -20,7 +20,7 @@ import { Popover, PopoverTrigger } from "../ui/popover";
 interface ChatBottombarProps {
   myInfo : MyInfo | null;
   selectedRoom : Room | null;
-  sendMessage: (newMessage: WebSocketMsg) => void;
+  sendMessage: (newMessage: WebSocketTextMessage) => void;
 }
 
 export const BottombarIcons = [{ icon: FileImage }, { icon: Paperclip }];
@@ -38,10 +38,9 @@ export default function ChatBottombar({
   };
 
   const handleSend = () => {
-    console.log(myInfo?.nickname)
     if (message.trim() && myInfo?.nickname != null && selectedRoom) {
       console.log("Preparing to send message...", message);
-      const newMessage: WebSocketMsg = {
+      const newMessage: WebSocketTextMessage = {
         type: RedisMessageType.NEW_MESSAGE,
         roomId: selectedRoom.id,
         message: message.trim(),

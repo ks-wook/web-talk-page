@@ -1,4 +1,4 @@
-import { ChatMessage, Friend } from "@/app/data";
+import { Friend } from "@/app/data";
 
 /**
  * 친구추가 요청

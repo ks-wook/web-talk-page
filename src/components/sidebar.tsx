@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from "@/components/ui/tooltip";
-import { SearchedUser as UserData, Friend, Room, WebSocketMsg, MyInfo } from "@/app/data";
+import { SearchedUser as UserData, Friend, Room, MyInfo } from "@/app/data";
 
 import {
   Dialog,
@@ -230,54 +230,18 @@ export function Sidebar({
 
     console.log('선택된 채팅방 : ', room);
 
-    // 채팅방의 ID를 통해 채팅용 웹소켓 연결
-    if(room !== null && chatSubscriptionManagerRef.current) {
-      // 이전에 구독중이던 방 구독 해제
 
-      console.log('이전에 구독중이던 채팅방 해제...');
-      chatSubscriptionManagerRef.current.unsubscribeChatRoom();
+    // 구독할 채팅방의 이전 채팅목록을 받아온다.
+    const res = await api.get<ChatListResponse>(`/api/v1/chat/rooms/${room.id}/messages`);
 
-      // 구독할 채팅방의 이전 채팅목록을 받아온다.
-      const res = await api.get<ChatListResponse>(`/api/v1/chat/rooms/${room.id}/messages`);
+    console.log('[조회된 최근 채팅 내역] : ', res);
 
-      console.log('[조회된 최근 채팅 내역] : ', res);
-
-      // 이전 채팅 내역 세팅
-      if(res.data.result === "SUCCESS") {
-        room.messages = res.data.messages;
-      }
-      
-      // 새로운 채팅방에 대해 구독 요청
-      chatSubscriptionManagerRef.current.subscribeChatRoom(room.id, (payload) => {
-        console.log("[chat message]", payload as WebSocketMsg);
-
-        // 현재 선택된 room에 대해 다른 값은 유지하고 message 값만 update
-        setSelectedRoom(prev => {
-          if (!prev) return prev;
-
-          // 초기화가 안되어있다면 빈배열로 세팅
-          if(prev.messages === undefined || prev.messages === null) {
-            prev.messages = [];
-          }
-
-          return {
-            ...prev,                 // 기존 room 유지
-            messages: [...prev.messages, payload] // messages만 갱신
-          };
-        });
-
-      });
-
-      // UI에 현재 사용중인 방 세팅
-      setSelectedRoom(room);
-
-      console.log(`${room.id} 번 방에 구독이 완료되었습니다.`);
+    // 이전 채팅 내역 세팅
+    if(res.data.result === "SUCCESS") {
+      room.messages = res.data.messages;
     }
-    else { // 채팅방 선택 오류 발생
-      console.error('채팅방 입장에 실패 하였습니다.');
-      console.log('chatSubscriptionManager : ', chatSubscriptionManagerRef);
-    }    
 
+    setSelectedRoom(room);
   };
 
   return (

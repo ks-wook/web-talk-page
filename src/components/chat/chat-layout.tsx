@@ -15,14 +15,13 @@ import {
 import { cn } from "@/lib/utils";
 import { Sidebar } from "../sidebar";
 import { Chat } from "./chat";
-import { Friend, MyInfo, Room, WebSocketMsg } from "@/app/data";
+import { Friend, MyInfo, Room, WebSocketTextMessage } from "@/app/data";
 import api from "@/lib/axios";
 
-import * as StompJs from "@stomp/stompjs";
-import { Client } from "@stomp/stompjs";
 import { GetFriendListResponse } from "@/types/api/user";
 import { GetJoinedRoomsResponse } from "@/types/api/chat";
 import { ChatSubscriptionManager } from "@/lib/chatSubscriptions";
+import { connectWebSocket, disconnectWebSocket } from "@/lib/ws";
 
 interface ChatLayoutProps {
   defaultLayout: number[] | undefined;
@@ -53,18 +52,20 @@ export function ChatLayout({
   // 현재 선택된 채팅방
   const [selectedRoom, setSelectedRoom] = React.useState<Room | null>(null);
 
+  // 현재 선택된 채팅방 ref
+  const selectedRoomRef = useRef<Room | null>(null);
+
   // 모바일에서 사이드바 표시 여부
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(true);
   
   // 모바일 여부 감지
   const [isMobile, setIsMobile] = React.useState(false);
 
+
   /**
    * 현재 유저 정보
    */
   const [myInfo, setMyInfo] = useState<MyInfo | null>(null);
-
-  const [client, setClient] = React.useState<Client | null>(null);
 
   /**
    * 웹소켓 구독 관리 매니저 클래스
@@ -131,9 +132,90 @@ export function ChatLayout({
    */
   useEffect(() => {
     if(myInfo) {
-      connectChatServer();
+      // connectChatServer();
+      connectChatServer2(myInfo);
+    }
+
+    return () => {
+      // 언마운트 시 웹소켓 연결 종료
+      disconnectWebSocket();
     }
   }, [myInfo]);
+
+  /**
+   * selectedRoom 변경 시 ref 업데이트
+   * stale closure 문제 해결용
+   */
+  useEffect(() => {
+    selectedRoomRef.current = selectedRoom;
+  }, [selectedRoom]);
+
+
+  const connectChatServer2 = (myInfo : MyInfo) => {
+    const ws = connectWebSocket(myInfo.userId, messageHandler);
+    if(ws) {
+      console.log('[chat-layout] 웹소켓 연결 완료 : ', ws);
+    }
+    else {
+      console.error('[chat-layout] 웹소켓 연결 실패');
+    }
+      
+  }
+
+  const messageHandler = (event: MessageEvent) => {
+    console.log("Received WS message: ", event.data);
+    
+        try {
+          const data = JSON.parse(event.data) as WebSocketTextMessage;
+          console.log("[WS] message", data);
+
+          // 받은 메시지의 타입이 invite인 경우 채팅방 생성
+          if(data.type === "INVITE") {
+
+            // 새로운 채팅방 추가
+            const newRoom : Room = {
+              id : data.roomId,
+              name : data.roomName,
+              messages : []
+            } as Room
+              
+            setRoomList(prev => [...prev, newRoom]);
+          }
+          else if(data.type === "NEW_MESSAGE") {
+
+            console.log("[WS] New message received for room ", selectedRoomRef.current?.id);
+
+            // 현재 선택된 방에서 온 메시지인 경우만 UI에 추가
+            if(data.roomId === selectedRoomRef.current?.id) {
+              setSelectedRoom(prev => {
+                if (!prev) return prev;
+
+                // 초기화가 안되어있다면 빈배열로 세팅
+                if(prev.messages === undefined || prev.messages === null) {
+                  prev.messages = [];
+                }
+
+                return {
+                  ...prev,                 // 기존 room 유지
+                  messages: [...prev.messages, data] // messages만 갱신
+                };
+              });
+            }
+            
+            
+          }
+          else {
+            console.error("Unknown WS message type", data);
+          }
+
+
+        } catch (e) {
+          console.error("Invalid WS message", event.data);
+        
+        }
+
+  }
+
 
   /**
    * 현재 유저 닉네임 세팅
@@ -184,68 +266,6 @@ export function ChatLayout({
       setRoomList(res.data.roomList);
     } catch (e) {
       console.log('Not logged in');
-    }
-
-  };
-
-  const connectChatServer = () => {
-    const authCookie = getCookie("onlineOpenChatAuth");
-
-    if (client === null) {
-      const WS_URL = process.env.NEXT_PUBLIC_ONLINE_OPEN_CHAT_WS;
-      console.log('[setSocket] 채팅 서버 접속 기록이 없습니다. 웹소켓 접속을 시도합니다.');
-
-      const setSocket = async () => {
-        const C = new StompJs.Client({
-          brokerURL: WS_URL + `?token=` + authCookie,
-          connectHeaders: {
-            Authorization: `Bearer ${authCookie}`,
-          },
-          reconnectDelay: 5000,
-          onConnect: () => {
-            console.log("채팅 서버 접속 완료...");
-            console.log("알림서버 채널에 구독을 요청합니다...");
-
-            // 세팅 완료된 소켓에 대해 구독 매니저 세팅
-            managerRef.current = new ChatSubscriptionManager(C);
-
-            // 유저 알림 채널 구독 요청
-            managerRef.current.subscribeNotification(myInfo?.userId, (payload) => {
-              const notification : WebSocketMsg = payload as WebSocketMsg;
-              console.log('알림 수신 : ', notification);
-
-              // 받은 메시지의 타입이 invite인 경우 채팅방 생성
-              if(notification.type === "INVITE") {              
-                // 새로운 채팅방 추가
-                const newRoom : Room = {
-                  id : notification.roomId,
-                  name : notification.roomName,
-                  messages : []
-                } as Room
-
-                setRoomList(prev => [...prev, newRoom]);
-              
-              }
-            });
-
-          },
-          onWebSocketError: (error) => {
-            console.log("Error with websocket", error);
-          },
-          onStompError: (frame) => {
-            console.dir(`Broker reported error: ${frame.headers.message}`);
-            console.dir(`Additional details: ${frame}`);
-          },
-        });
-
-        console.log('[세팅된 소켓] : ', C);
-
-        setClient(C); // WebSocket 클라이언트를 저장
-        C.activate();
-
-      };
-
-      setSocket();
     }
 
   };
@@ -307,7 +327,6 @@ export function ChatLayout({
             <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
               <Chat
                 myInfo={myInfo}
-                client={client}
                 selectedRoom={selectedRoom}
                 setSelectedRoom={setSelectedRoom}
               />
