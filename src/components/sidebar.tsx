@@ -20,6 +20,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  DialogTitle,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import "@mui/material/styles"; // MUI 스타일 추가
@@ -250,11 +251,14 @@ export function Sidebar({
       className="relative group flex flex-col h-full gap-4 p-2 data-[collapsed=true]:p-2 "
     >
       <Dialog open={showModal} onClose={closeSearchModal} maxWidth="sm" fullWidth>
+        <DialogTitle className="mb-2 text-lg font-semibold">
+          친구 추가
+        </DialogTitle>
         <DialogContent>
           <div className="flex items-center">
             <TextField
               fullWidth
-              placeholder="친구의 닉네임으로 검색할 수 있습니다."
+              placeholder="추가하고 싶은 친구의 닉네임을 검색해주세요."
               value={searchQuery}
               onChange={handleSearchQueryChange}
               InputProps={{
