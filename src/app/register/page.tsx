@@ -14,6 +14,7 @@ import { useGlobalModal } from '@/components/modal/GlobalModalProvider';
 export default function Register() {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [nickname, setNickname] = useState<string>("");
   const router = useRouter();
   const { openModal } = useGlobalModal();
 
@@ -34,12 +35,35 @@ export default function Register() {
     event.preventDefault();
     // Add registration logic here
 
-    console.log(username);
-    console.log(password);
+    if(nickname.trim() === "") {
+      // 닉네임 유효성 검사
+      openModal({
+        title: '입력 오류',
+        content: (
+          <div className="text-green-600">
+            닉네임을 입력해주세요.
+          </div>
+        ),
+      });
+      return;
+    }
+    // 닉네임에 #같은 특수문자 포함 불가 처리
+    if(/[^a-zA-Z0-9가-힣]/.test(nickname)) {
+      openModal({
+        title: '입력 오류',
+        content: (
+          <div className="text-green-600">
+            닉네임에 특수문자는 포함할 수 없습니다.
+          </div>
+        ),
+      });
+      return;
+    }
 
     const res = await api.post<CreateUserResponse>("/api/v1/auth/create-user", {
       loginId: username,
       password: password,
+      nickname: nickname,
     });
 
     console.log("[handleSubmit] 회원가입 요청 API 호출 결과 : ", res.data);
@@ -109,6 +133,19 @@ export default function Register() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
+              className="auth-input"
+            />
+          </div>
+          <div>
+            <label htmlFor="nickname" className="auth-label">
+              닉네임
+            </label>
+            <input
+              type="text"
+              id="nickname"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
               required
               className="auth-input"
             />

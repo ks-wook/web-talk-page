@@ -109,7 +109,7 @@ export default function Login() {
           animation: "fadeIn 0.5s ease-in-out"
         }}>
           <h1 style={{
-            fontSize: "6rem",
+            fontSize: typeof window !== 'undefined' && window.innerWidth <= 768 ? "3rem" : "5rem",
             fontWeight: "bold",
             color: "#a78bfa",
             animation: "scaleUp 1s ease-in-out"
@@ -119,7 +119,7 @@ export default function Login() {
         </div>
       )}
       <div className="auth-container">
-        <h1 style={{ fontSize: "5rem", fontWeight: "bold", color: "#a78bfa", marginBottom: "2rem", textAlign: "center" }}>
+        <h1 style={{ fontSize: "3rem", fontWeight: "bold", color: "#a78bfa", marginBottom: "2rem", textAlign: "center" }}>
           Web Talk
         </h1>
       <div className="auth-form">
