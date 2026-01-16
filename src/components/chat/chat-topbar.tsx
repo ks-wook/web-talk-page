@@ -1,6 +1,6 @@
 import React from "react";
 import { Avatar, AvatarImage } from "../ui/avatar";
-import { Room, User } from "@/app/data";
+import { Room } from "@/app/data";
 import { Info, Phone, Video } from "lucide-react";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -21,15 +21,8 @@ export default function ChatTopbar({
   setSelectedRoom,
 }: ChatTopbarProps) {
 
-  // console.log('전달받은 방 정보 : ', selectedRoom);
-
   // 채팅창 UI 닫기
   const close = (event: any) => {
-    // window.localStorage.removeItem("selectedUser");
-    // setSelectedUser(null);
-
-    // TODO : 현재 연결되어있던 채팅방 소켓 연결 끊기
-
     setSelectedRoom(null);
   };
 

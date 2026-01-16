@@ -27,7 +27,6 @@ import "@mui/material/styles"; // MUI 스타일 추가
 import api from "@/lib/axios";
 import CreateRoomDialog from "./dialog/CreateRoomDialog";
 import FriendsListDialog from "./dialog/FriendsListDialog";
-import { ChatSubscriptionManager } from "@/lib/chatSubscriptions";
 import { ChatListResponse } from "@/types/api/chat";
 import React from "react";
 import { AddFriendResponse, GetFriendListResponse } from "@/types/api/user";
@@ -39,7 +38,6 @@ interface SidebarProps {
   roomList : Room[];
   selectedRoom : Room | null;
   myInfo: MyInfo | null;
-  chatSubscriptionManagerRef: React.RefObject<ChatSubscriptionManager | null>;
   setRoomList: React.Dispatch<React.SetStateAction<Room[]>>;
   setSelectedRoom: React.Dispatch<React.SetStateAction<Room | null>>;
   setFriendList : React.Dispatch<React.SetStateAction<Friend[]>>;
@@ -86,7 +84,6 @@ export function Sidebar({
   isCollapsed,
   roomList,
   selectedRoom,
-  chatSubscriptionManagerRef,
   myInfo,
   setRoomList,
   setSelectedRoom,

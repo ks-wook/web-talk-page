@@ -20,7 +20,6 @@ import api from "@/lib/axios";
 
 import { GetFriendListResponse } from "@/types/api/user";
 import { GetJoinedRoomsResponse } from "@/types/api/chat";
-import { ChatSubscriptionManager } from "@/lib/chatSubscriptions";
 import { connectWebSocket, disconnectWebSocket } from "@/lib/ws";
 
 interface ChatLayoutProps {
@@ -66,11 +65,6 @@ export function ChatLayout({
    * 현재 유저 정보
    */
   const [myInfo, setMyInfo] = useState<MyInfo | null>(null);
-
-  /**
-   * 웹소켓 구독 관리 매니저 클래스
-   */
-  const managerRef = useRef<ChatSubscriptionManager | null>(null);
 
   /**
    * 모바일 감지
@@ -310,7 +304,6 @@ export function ChatLayout({
             friendList={friendList} // 친구 목록
             roomList={roomList} // 채팅방 목록
             selectedRoom={selectedRoom} // 현재 선택된 방
-            chatSubscriptionManagerRef={managerRef} // 구독 매니저 값
             myInfo={myInfo}
             setRoomList={setRoomList}
             setSelectedRoom={setSelectedRoom}

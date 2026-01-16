@@ -41,11 +41,12 @@ export default function ChatBottombar({
     if (message.trim() && myInfo?.nickname != null && selectedRoom) {
       console.log("Preparing to send message...", message);
       const newMessage: WebSocketTextMessage = {
-        type: RedisMessageType.NEW_MESSAGE,
+        type: RedisMessageType.NEW_MESSAGE.toString(),
         roomId: selectedRoom.id,
         message: message.trim(),
         senderName: myInfo.nickname,
         userId: myInfo.userId,
+        roomName: ""
       };
 
       sendMessage(newMessage);
