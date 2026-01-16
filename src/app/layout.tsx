@@ -5,8 +5,8 @@ import "./globals.css";
 import { GlobalModalProvider } from '@/components/modal/GlobalModalProvider';
 
 export const metadata: Metadata = {
-  title: "Spring Chat Platform",
-  description: "Spring Chat Platform",
+  title: "Web Talk",
+  description: "Welcome to Web Talk - Your Ultimate Chat Platform!",
 };
 
 export const viewport = {
