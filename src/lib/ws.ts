@@ -2,6 +2,8 @@
 // WebSocket singleton state
 // ===============================
 
+const WEBSOCKET_CONNECT_URL = process.env.NEXT_PUBLIC_ONLINE_OPEN_CHAT_WS;
+
 let socket: WebSocket | null = null;
 let connecting = false;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
@@ -45,7 +47,7 @@ export function connectWebSocket(
 
   connecting = true;
 
-  const wsUrl = `ws://localhost:7002/ws/chat?userId=${userId}`;
+  const wsUrl = `${WEBSOCKET_CONNECT_URL}?userId=${userId}`;
   socket = new WebSocket(wsUrl);
 
   // ===============================
